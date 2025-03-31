@@ -1,4 +1,4 @@
-rm(list = ls()) ##### EXAMPLE
+rm(list = ls())
 #######################################################
 #######################################################
 
@@ -10,7 +10,8 @@ model_fitting<- function(data, time,value){
 require(epiR)
   require(ggplot2)
 df <- data
-df0<- df %>% select(t={{time}},y={{value}}) %>%  # transform to proportion
+df0<- df %>% 
+  dplyr::select(t={{time}},y={{value}}) %>%  # transform to proportion
   mutate(exponential = log(y),
          monomolecular = log(1 / (1 - y)),
          logistic = log(y / (1 - y)),
@@ -66,7 +67,8 @@ logs <- function(t) 1 / (1 + ((1 - y0L) / y0L) * exp(-rl * t))
 #*Gompe
 gomps <- function(t) exp(log(y0G) * exp(-rg * t))
  #### Table with value predicted
-data_base<- df0 %>% select(t, y) %>% 
+data_base<- df0 %>% 
+  dplyr::select(t, y) %>% 
   mutate(exponential = exps(t),
          monomolecular = mon(t),
          logistic = logs(t),
