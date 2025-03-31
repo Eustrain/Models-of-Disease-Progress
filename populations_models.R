@@ -1,15 +1,12 @@
-rm(list = ls())
+rm(list = ls()) ##### EXAMPLE
 #######################################################
 #######################################################
 
-evaluacion<- c(1:10)
-porcentaje_pe <- c(0,4,9,15,20,30,35,38,39,39)
-porpocion_e <- porcentaje_pe/100
 
 cuadro_3 <- data.frame(evaluacion,porcentaje_pe,porpocion_e)
 
 
-model_fitting<- function(data, time,value, modelo){
+model_fitting<- function(data, time,value){
 require(epiR)
   require(ggplot2)
 df <- data
@@ -81,27 +78,61 @@ data_base<- df0 %>% select(t, y) %>%
 table_values <- data.frame("Model"=models,"y0"=table_y,"r"=table_r)
 out <- list("data" = df0, "Lins"=data_evals, "values"=table_values,"predicted"=data_base)
 
-print(out)
+return(out)
           
  }
+############ the data that we need
+evaluacion<- c(1:10)
+porcentaje_pe <- c(0,4,9,15,20,30,35,38,39,39)
+porpocion_e <- porcentaje_pe/100
+########### example2
+t <- c(21,33,36,40,43)
+y <- c(0.29,0.59,0.8,0.91,0.96)
 
-
-example<- enfermedades(data = cuadro_3,evaluacion,porpocion_e)
+ex2 <- data.frame("t"=t, y =y)
+str(ex2)
+###########
+example<- model_fitting(data = cuadro_3,evaluacion,porpocion_e)
+example <- model_fitting(data = ex2,time = t,value = y)
 
 
 ### this are the  example data
 y0 <- example$values[1,2]
 r <- example$values[1,3]
-#* monomolecular
+#* monomolecular fuctions to calculte the predicted value por each time value that we needs
 mon <- function(t) 1 - ((1 - y0) * exp(-r * t))
-
-
- 
 t2 <- seq(0,10,1)
 nw <- data.frame(t=t2, y = mon(t2))
 
 ggplot(data = nw, aes(x =t, y = y, group= 1))+
   geom_line()+
-  geom_point(data = example$data,aes(x = t, y =y))+
+  geom_point(data = example$data,aes(x = t, y =y))
   scale_y_continuous(limits = c(0,1))
+  
+####### plot foe each model
+  
+example$predicted %>%
+  pivot_longer(cols = 3:6,names_to = "models", values_to = "value_predicted") %>% 
+  ggplot(aes(t, y = value_predicted, group= 1))+
+  geom_line()+
+  geom_point(aes(x = t , y = y))+
+  facet_wrap(~models)+
+  labs(x = "time", y = " y * ")+
+  theme_bw()
+####### plot comparating models
+example$predicted %>% 
+  ggplot(aes(x = as.factor(t), y = y))+
+  geom_point(color="blue",shape=5, size=1.5)+
+  geom_line(aes(x= t, y = exponential,group=1,linetype = "dashed"))+
+  geom_line(aes(x= t, y = monomolecular,linetype="dotted"))+
+  geom_line(aes(x= t, y = logistic,linetype="twodash"))+
+  geom_line(aes(x= t, y = gompertz,linetype="solid"))+
+  labs(x = "time", y = "y")+
+  scale_linetype_manual(name="Model",values = c("dashed","dotted","twodash","solid"),
+                        labels = c( "exponential", "monomolecular",
+                                    "logistic","gompertz"))+
+  theme_bw()
+  
+ 
 
+    
